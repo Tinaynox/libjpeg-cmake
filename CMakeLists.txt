@@ -6,6 +6,8 @@ include(CheckIncludeFile)
 include(CheckSymbolExists)
 include(CheckCSourceCompiles)
 
+option(JPEG_BUILD_EXECUTABLES "Build executables" OFF)
+
 check_include_file(stddef.h HAVE_STDDEF_H)
 check_include_file(stdlib.h HAVE_STDLIB_H)
 check_include_file(string.h HAVE_STRING_H)
@@ -93,21 +95,27 @@ add_library(libjpeg
     jmemnobs.c
 )
 
-add_executable(cjpeg cjpeg.c rdppm.c rdgif.c rdtarga.c rdrle.c rdbmp.c rdswitch.c cdjpeg.c)
-target_link_libraries(cjpeg libjpeg)
+set(JPEG_TARGETS libjpeg)
 
-add_executable(djpeg djpeg.c wrppm.c wrgif.c wrtarga.c wrrle.c wrbmp.c rdcolmap.c cdjpeg.c)
-target_link_libraries(djpeg libjpeg)
+if (JPEG_BUILD_EXECUTABLES)
+    add_executable(cjpeg cjpeg.c rdppm.c rdgif.c rdtarga.c rdrle.c rdbmp.c rdswitch.c cdjpeg.c)
+    target_link_libraries(cjpeg libjpeg)
 
-add_executable(jpegtran jpegtran.c rdswitch.c cdjpeg.c transupp.c)
-target_link_libraries(jpegtran libjpeg)
+    add_executable(djpeg djpeg.c wrppm.c wrgif.c wrtarga.c wrrle.c wrbmp.c rdcolmap.c cdjpeg.c)
+    target_link_libraries(djpeg libjpeg)
 
-add_executable(rdjpgcom rdjpgcom.c)
+    add_executable(jpegtran jpegtran.c rdswitch.c cdjpeg.c transupp.c)
+    target_link_libraries(jpegtran libjpeg)
 
-add_executable(wrjpgcom wrjpgcom.c)
+    add_executable(rdjpgcom rdjpgcom.c)
+
+    add_executable(wrjpgcom wrjpgcom.c)
+    
+    list(APPEND JPEG_TARGETS cjpeg djpeg jpegtran rdjpgcom wrjpgcom)
+endif()
 
 install(
-    TARGETS libjpeg cjpeg djpeg jpegtran rdjpgcom wrjpgcom
+    TARGETS ${JPEG_TARGETS} 
     EXPORT "libjpegTargets"
     LIBRARY DESTINATION "lib"
     ARCHIVE DESTINATION "lib"
